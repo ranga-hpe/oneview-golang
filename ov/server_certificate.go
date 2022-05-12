@@ -119,6 +119,10 @@ func (c *OVClient) GetServerCertificateByName(name string) (ServerCertificate, e
 }
 
 func (c *OVClient) CreateServerCertificate(serverC ServerCertificate) error {
+	return c.CreateServerCertificateForce(serverC, false)
+}
+
+func (c *OVClient) CreateServerCertificateForce(serverC ServerCertificate, forceSaveLeaf bool) error {
 	log.Infof("Initializing adding of ServerCertificate %s.", serverC.Name)
 	var (
 		uri = "/rest/certificates/servers/"
@@ -126,7 +130,12 @@ func (c *OVClient) CreateServerCertificate(serverC ServerCertificate) error {
 	)
 	// refresh login
 	c.RefreshLogin()
-	c.SetAuthHeaderOptions(c.GetAuthHeaderMap())
+
+	header := c.GetAuthHeaderMap()
+	if forceSaveLeaf == true {
+		header["ForceSaveLeaf"] = "true"
+	}
+	c.SetAuthHeaderOptions(header)
 
 	t = t.NewProfileTask(c)
 	t.ResetTask()
